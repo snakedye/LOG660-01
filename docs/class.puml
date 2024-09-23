@@ -1,95 +1,110 @@
-@startuml class diagram
-title "Class Diagram"
-
-class User {
-  +name: string
-  +email: string
-  +phone_number: string
-  +home_address: string
-  +birth_date: Date
-  +password: string
-  +tier_code: string <<D, I, A>>
-  +credit_card: CreditCard
+@startuml
+' Classe principale Utilisateur id vont d i ou a
+class Utilisateur {
+  - nom: String
+  - courriel: String
+  - numéro_téléphone: String
+  - adresse_domicile: String
+  - date_naissance: Date
+  - mot_de_passe: String
+  - forfait: 
+  - carte_de_crédit: CarteDeCrédit
 }
 
-class CreditCard {
-  +type: string <<VISA, MasterCard, Amex>>
-  +number: string
-  +expiration_date: Date
-  +cvv: string
+' Carte de Crédit
+class CarteDeCrédit {
+  - type: String <<enum>> {VISA, MasterCard, Amex}
+  - numéro: String
+  - date_expiration: Date
+  - cvv: String
 }
 
-class Package {
-  +cost: double
-  +location_max: int
-  +duration_max: int
+' Forfait
+class Forfait {
+  - coût: double
+  - locations_max: int
+  - durée_max: int
 }
 
-class Rental {
-  +duration: int
-  +movie: Movie
+' Location
+class Location {
+  - start_date: Date
+  - due_date: Date
+  - returned_date: Date
+  - Copie: copie
 }
 
-class Movie {
-  +title: string
-  +release_year: int
-  +production_country: string
-  +language: string
-  +length: int
-  +genres: string[]
-  +director: Director
-  +actors: Actor[]
-  +screenwriters: ScreenWriter[]
-  +summary: string
-  +poster: string
-  +links: string[]
+' Film
+class Film {
+  - titre: String
+  - année_sortie: int
+  - pays_production: String
+  - langue: String
+  - durée: int
+  - genres: String[]
+  - réalisateur: Réalisateur
+  - acteurs: Acteur[]
+  - scénaristes: Scénariste[]
+  - résumé: String
+  - affiche: String
+  - liens: String[]
 }
 
-' The generic class Person, previously called PersonalDetails
-class Person {
-  +name: string
-  +birth_date: Date
-  +birth_location: string
-  +picture: string
-  +biography: string
+' Réalisateur
+class Réalisateur {
+  - nom: String
+  - films: Film[]
 }
 
-' Actor, Director, and ScreenWriter now inherit Person
-class Actor {
-  +roles: Role[]
+' Scénariste
+class Scénariste {
+  - nom: String
+  - films: Film[]
 }
 
-class Director {
-  +movies: Movie[]
+' Acteur
+class Acteur {
+  - rôles: Rôle[]
 }
 
-class ScreenWriter {
-  +movies: Movie[]
+' Rôle
+class Rôle {
+  - nom: String
+  - film: Film
+  - description: String
 }
 
-class Role {
-  +name: string
-  +movie: Movie
-  +description: string
+' Personne (classe parent)
+class Personne {
+  - nom: String
+  - date_naissance: Date
+  - lieu_naissance: String
+  - photo: String
+  - biographie: String
 }
 
-' Inheritance relations
-Actor --|> Person
-Director --|> Person
-ScreenWriter --|> Person
+' Classe Copie pour les copies de films
+class Copie {
+  - disponible: Bool
+  - film: Film
+}
 
 ' Associations
-User "1" -- "1" CreditCard : has
-User "1" -- "1" Package : subscribes to
-User "1" -- "0..*" Rental : rents
-Rental "1" -- "1" Movie : refers to
-Movie "1" -- "0..*" Actor : includes
-Movie "1" -- "1" Director : directed by
-Movie "1" -- "0..*" ScreenWriter : written by
-Actor "1" -- "0..*" Role : plays
-Role "1" -- "1" Movie : belongs to
-Director "1" -- "0..*" Movie : directs
-ScreenWriter "1" -- "0..*" Movie : writes
+Utilisateur "1" -- "1" CarteDeCrédit : possède
+Utilisateur "1" -- "1" Forfait : souscrit à
+Utilisateur "1" -- "0..*" Location : loue
+
+
+Location "1" -- "1" Copie : utilise_copie
+
+Film "1" -- "0..*" Réalisateur : réalisé par
+Film "0..*" -- "0..*" Acteur : inclus
+Film "0..*" -- "0..*" Scénariste : écrit par
+Film "1" -- "0..*" Copie : a_des_copies
+
+Personne <|-- Réalisateur
+Personne <|-- Acteur
+Personne <|-- Scénariste
+Acteur "1" -- "0..*" Rôle : joue dans
 
 @enduml
-
