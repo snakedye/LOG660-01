@@ -69,7 +69,7 @@ class Acteur {
 
 ' Rôle
 class Rôle {
-  - nom: String
+  - nom: StringS
   - film: Film
   - description: String
 }
