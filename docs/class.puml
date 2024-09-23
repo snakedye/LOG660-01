@@ -1,15 +1,17 @@
-@startuml
-' Classe principale Utilisateur 
-' Le forfait sera identifié par soit D, I OU A
-class Utilisateur {
-  - nom: String
-  - courriel: String
-  - numéro_téléphone: String
-  - adresse_domicile: String
-  - date_naissance: Date
-  - mot_de_passe: String
-  - forfait: Forfait
-  - carte_de_crédit: CarteDeCrédit
+@startuml class diagram
+title "Class Diagram"
+hide empty members
+hide footbox
+
+class User {
+  +name: string
+  +email: string
+  +phone_number: string
+  +home_address: string
+  +birth_date: Date
+  +password: string
+  +package: Package
+  +credit_card: CreditCard
 }
 
 ' Carte de Crédit
