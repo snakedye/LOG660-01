@@ -1,4 +1,5 @@
-@startuml
+@startuml class diagram
+title "Class Diagram"
 
 class User {
   +name: string
