@@ -1,0 +1,94 @@
+@startuml
+
+class User {
+  +name: string
+  +email: string
+  +phone_number: string
+  +home_address: string
+  +birth_date: Date
+  +password: string
+  +tier_code: string <<D, I, A>>
+  +credit_card: CreditCard
+}
+
+class CreditCard {
+  +type: string <<VISA, MasterCard, Amex>>
+  +number: string
+  +expiration_date: Date
+  +cvv: string
+}
+
+class Package {
+  +cost: double
+  +location_max: int
+  +duration_max: int
+}
+
+class Rental {
+  +duration: int
+  +movie: Movie
+}
+
+class Movie {
+  +title: string
+  +release_year: int
+  +production_country: string
+  +language: string
+  +length: int
+  +genres: string[]
+  +director: Director
+  +actors: Actor[]
+  +screenwriters: ScreenWriter[]
+  +summary: string
+  +poster: string
+  +links: string[]
+}
+
+' The generic class Person, previously called PersonalDetails
+class Person {
+  +name: string
+  +birth_date: Date
+  +birth_location: string
+  +picture: string
+  +biography: string
+}
+
+' Actor, Director, and ScreenWriter now inherit Person
+class Actor {
+  +roles: Role[]
+}
+
+class Director {
+  +movies: Movie[]
+}
+
+class ScreenWriter {
+  +movies: Movie[]
+}
+
+class Role {
+  +name: string
+  +movie: Movie
+  +description: string
+}
+
+' Inheritance relations
+Actor --|> Person
+Director --|> Person
+ScreenWriter --|> Person
+
+' Associations
+User "1" -- "1" CreditCard : has
+User "1" -- "1" Package : subscribes to
+User "1" -- "0..*" Rental : rents
+Rental "1" -- "1" Movie : refers to
+Movie "1" -- "0..*" Actor : includes
+Movie "1" -- "1" Director : directed by
+Movie "1" -- "0..*" ScreenWriter : written by
+Actor "1" -- "0..*" Role : plays
+Role "1" -- "1" Movie : belongs to
+Director "1" -- "0..*" Movie : directs
+ScreenWriter "1" -- "0..*" Movie : writes
+
+@enduml
+
