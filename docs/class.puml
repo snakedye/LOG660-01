@@ -1,17 +1,14 @@
 @startuml class diagram
-title "Class Diagram"
-hide empty members
-hide footbox
-
-class User {
-  +name: string
-  +email: string
-  +phone_number: string
-  +home_address: string
-  +birth_date: Date
-  +password: string
-  +package: Package
-  +credit_card: CreditCard
+' Classe principale Utilisateur 
+class Utilisateur {
+  - nom: String
+  - courriel: String
+  - numéro_téléphone: String
+  - adresse_domicile: String
+  - date_naissance: Date
+  - mot_de_passe: String
+  - forfait: Forfait
+  - carte_de_crédit: CarteDeCrédit
 }
 
 ' Carte de Crédit
@@ -34,7 +31,7 @@ class Location {
   - start_date: Date
   - due_date: Date
   - returned_date: Date
-  - Copie: copie
+  - copie: Copie
 }
 
 ' Film
@@ -53,32 +50,30 @@ class Film {
   - liens: String[]
 }
 
-' Réalisateur
+' Réalisateur hérite de Personne
 class Réalisateur {
-  - nom: String
   - films: Film[]
 }
 
-' Scénariste
+' Scénariste hérite de Personne
 class Scénariste {
-  - nom: String
   - films: Film[]
 }
 
-' Acteur
+' Acteur hérite de Personne
 class Acteur {
   - rôles: Rôle[]
 }
 
 ' Rôle
 class Rôle {
-  - nom: StringS
+  - nom: String
   - film: Film
   - description: String
 }
 
-' Personne (classe parent)
-class Personne {
+' Personne (classe parent abstraite)
+abstract class Personne {
   - nom: String
   - date_naissance: Date
   - lieu_naissance: String
@@ -96,18 +91,16 @@ class Copie {
 Utilisateur "1" -- "1" CarteDeCrédit : possède
 Utilisateur "1" -- "1" Forfait : souscrit à
 Utilisateur "1" -- "0..*" Location : loue
-
-
-Location "1" -- "1" Copie : utilise_copie
-
-Film "1" -- "0..*" Réalisateur : réalisé par
-Film "0..*" -- "0..*" Acteur : inclus
-Film "0..*" -- "0..*" Scénariste : écrit par
+Location "1" -- "1" Copie : utilise
+Film "1" -- "0..*" Réalisateur : réalisé_par
+Film "1" -- "0..*" Acteur : inclut
+Film "1" -- "0..*" Scénariste : écrit_par
 Film "1" -- "0..*" Copie : a_des_copies
+Acteur "1" -- "0..*" Rôle : joue_dans
 
-Personne <|-- Réalisateur
-Personne <|-- Acteur
-Personne <|-- Scénariste
-Acteur "1" -- "0..*" Rôle : joue dans
+' Ajout des contraintes de spécialisation
+Personne <|-- Réalisateur : {complete}
+Personne <|-- Acteur : {incomplete}
+Personne <|-- Scénariste : {incomplete}
 
 @enduml
