@@ -1,0 +1,123 @@
+@startuml
+entity Utilisateur {
+  + utilisateur_id: NUMBER(10) <<PK>>
+  - nom: VARCHAR2(100)
+  - courriel: VARCHAR2(100)
+  - numéro_téléphone: VARCHAR2(15)
+  - adresse_domicile: VARCHAR2(200)
+  - date_naissance: DATE
+  - mot_de_passe: VARCHAR2(50)
+  - forfait_id: NUMBER(10) <<FK>> -- Forfait
+  - carte_credit_id: NUMBER(10) <<FK>> -- CarteDeCrédit
+}
+
+entity CarteDeCrédit {
+  + carte_credit_id: NUMBER(10) <<PK>>
+  - type: VARCHAR2(20)
+  - numéro: VARCHAR2(16)
+  - date_expiration: DATE
+  - cvv: VARCHAR2(3)
+}
+
+entity Forfait {
+  + forfait_id: NUMBER(10) <<PK>>
+  - coût: NUMBER(5, 2)
+  - locations_max: NUMBER(3)
+  - durée_max: NUMBER(3)
+  - code: CHAR(1) <<UNIQUE>>
+}
+
+entity Location {
+  + location_id: NUMBER(10) <<PK>>
+  - start_date: DATE
+  - due_date: DATE
+  - returned_date: DATE
+  - utilisateur_id: NUMBER(10) <<FK>> -- Utilisateur
+  - copie_id: NUMBER(10) <<FK>> -- Copie
+}
+
+entity Film {
+  + film_id: NUMBER(10) <<PK>>
+  - titre: VARCHAR2(200)
+  - année_sortie: NUMBER(4)
+  - pays_production: VARCHAR2(50)
+  - langue: VARCHAR2(50)
+  - durée: NUMBER(3)
+  - résumé: VARCHAR2(1000)
+  - affiche: VARCHAR2(200)
+}
+
+entity Genre {
+  + genre_id: NUMBER(10) <<PK>>
+  - nom: VARCHAR2(50)
+}
+
+entity Film_Genre {
+  + film_id: NUMBER(10) <<PK>> <<FK>> -- Film
+  + genre_id: NUMBER(10) <<PK>> <<FK>> -- Genre
+}
+
+entity Copie {
+  + copie_id: NUMBER(10) <<PK>>
+  - disponible: CHAR(1)
+  - film_id: NUMBER(10) <<FK>> -- Film
+}
+
+entity Personne {
+  + personne_id: NUMBER(10) <<PK>>
+  - nom: VARCHAR2(100)
+  - date_naissance: DATE
+  - lieu_naissance: VARCHAR2(100)
+  - photo: VARCHAR2(200)
+  - biographie: VARCHAR2(1000)
+}
+
+entity Réalisateur {
+  + réalisateur_id: NUMBER(10) <<PK>> <<FK>> -- Personne
+}
+
+entity Scénariste {
+  + scénariste_id: NUMBER(10) <<PK>> <<FK>> -- Personne
+}
+
+entity Acteur {
+  + acteur_id: NUMBER(10) <<PK>> <<FK>> -- Personne
+}
+
+entity Rôle {
+  + role_id: NUMBER(10) <<PK>>
+  - nom: VARCHAR2(100)
+  - description: VARCHAR2(500)
+  - acteur_id: NUMBER(10) <<FK>> -- Acteur
+  - film_id: NUMBER(10) <<FK>> -- Film
+}
+
+entity Film_Réalisateur {
+  + film_id: NUMBER(10) <<PK>> <<FK>> -- Film
+  + réalisateur_id: NUMBER(10) <<PK>> <<FK>> -- Réalisateur
+}
+
+entity Film_Scénariste {
+  + film_id: NUMBER(10) <<PK>> <<FK>> -- Film
+  + scénariste_id: NUMBER(10) <<PK>> <<FK>> -- Scénariste
+}
+
+' Associations (relations entre tables)
+Utilisateur ||--o{ Forfait
+Utilisateur ||--o{ CarteDeCrédit
+Utilisateur ||--o{ Location
+Location ||--o{ Copie
+Copie ||--o{ Film
+Film ||--o{ Film_Genre
+Genre ||--o{ Film_Genre
+Film ||--o{ Film_Réalisateur
+Réalisateur ||--o{ Film_Réalisateur
+Film ||--o{ Film_Scénariste
+Scénariste ||--o{ Film_Scénariste
+Acteur ||--o{ Rôle
+Film ||--o{ Rôle
+Personne ||--|> Réalisateur
+Personne ||--|> Acteur
+Personne ||--|> Scénariste
+
+@enduml
