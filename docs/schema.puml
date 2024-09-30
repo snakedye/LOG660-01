@@ -1,4 +1,5 @@
 @startuml schema
+title Schéma de la base de données
 
 entity Utilisateur {
   + utilisateur_id: NUMBER(10) <<PK>>
@@ -60,7 +61,7 @@ entity Film_Genre {
 
 entity Copie {
   + copie_id: NUMBER(10) <<PK>>
-  - disponible: CHAR(1)
+  - disponible: BOOLEAN
   - film_id: NUMBER(10) <<FK>> -- Film
 }
 
