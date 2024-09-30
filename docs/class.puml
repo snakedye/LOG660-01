@@ -1,6 +1,9 @@
-@startuml
+@startuml class diagram
+
+title Diagramme de classe
+hide empty members
+
 ' Classe principale Utilisateur 
-' Le forfait sera identifié par soit D, I OU A
 class Utilisateur {
   - nom: String
   - courriel: String
@@ -29,10 +32,10 @@ class Forfait {
 
 ' Location
 class Location {
-  - start_date: Date
-  - due_date: Date
-  - returned_date: Date
-  - Copie: copie
+  - date_debut: Date
+  - date_fin: Date
+  - date_retour: Date
+  - copie: Copie
 }
 
 ' Film
@@ -43,40 +46,35 @@ class Film {
   - langue: String
   - durée: int
   - genres: String[]
-  - réalisateur: Réalisateur
-  - acteurs: Acteur[]
-  - scénaristes: Scénariste[]
   - résumé: String
   - affiche: String
   - liens: String[]
 }
 
-' Réalisateur
+' Réalisateur hérite de Personne
 class Réalisateur {
-  - nom: String
   - films: Film[]
 }
 
-' Scénariste
+' Scénariste hérite de Personne
 class Scénariste {
-  - nom: String
   - films: Film[]
 }
 
-' Acteur
+' Acteur hérite de Personne
 class Acteur {
   - rôles: Rôle[]
 }
 
 ' Rôle
 class Rôle {
-  - nom: StringS
-  - film: Film
+  - nom: String
   - description: String
+  - film: Film
 }
 
-' Personne (classe parent)
-class Personne {
+' Personne (classe parent abstraite)
+abstract class Personne {
   - nom: String
   - date_naissance: Date
   - lieu_naissance: String
@@ -86,7 +84,7 @@ class Personne {
 
 ' Classe Copie pour les copies de films
 class Copie {
-  - disponible: Bool
+  - disponible: Boolean
   - film: Film
 }
 
@@ -94,18 +92,16 @@ class Copie {
 Utilisateur "1" -- "1" CarteDeCrédit : possède
 Utilisateur "1" -- "1" Forfait : souscrit à
 Utilisateur "1" -- "0..*" Location : loue
-
-
-Location "1" -- "1" Copie : utilise_copie
-
+Location "1" -- "1" Copie : utilise
 Film "1" -- "0..*" Réalisateur : réalisé par
-Film "0..*" -- "0..*" Acteur : inclus
-Film "0..*" -- "0..*" Scénariste : écrit par
+Film "1" -- "0..*" Acteur : inclut
+Film "1" -- "0..*" Scénariste : écrit par
 Film "1" -- "0..*" Copie : a_des_copies
-
-Personne <|-- Réalisateur
-Personne <|-- Acteur
-Personne <|-- Scénariste
 Acteur "1" -- "0..*" Rôle : joue dans
+
+' Contraintes de spécialisation
+Personne <|-- Réalisateur : {complete}
+Personne <|-- Acteur : {incomplete}
+Personne <|-- Scénariste : {incomplete}
 
 @enduml
