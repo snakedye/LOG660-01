@@ -1,4 +1,8 @@
 @startuml class diagram
+
+title Diagramme de classe
+hide empty members
+
 ' Classe principale Utilisateur 
 class Utilisateur {
   - nom: String
@@ -28,9 +32,9 @@ class Forfait {
 
 ' Location
 class Location {
-  - start_date: Date
-  - due_date: Date
-  - returned_date: Date
+  - date_debut: Date
+  - date_fin: Date
+  - date_retour: Date
   - copie: Copie
 }
 
@@ -42,9 +46,6 @@ class Film {
   - langue: String
   - durée: int
   - genres: String[]
-  - réalisateur: Réalisateur
-  - acteurs: Acteur[]
-  - scénaristes: Scénariste[]
   - résumé: String
   - affiche: String
   - liens: String[]
@@ -68,8 +69,8 @@ class Acteur {
 ' Rôle
 class Rôle {
   - nom: String
-  - film: Film
   - description: String
+  - film: Film
 }
 
 ' Personne (classe parent abstraite)
@@ -83,7 +84,7 @@ abstract class Personne {
 
 ' Classe Copie pour les copies de films
 class Copie {
-  - disponible: Bool
+  - disponible: Boolean
   - film: Film
 }
 
@@ -92,13 +93,13 @@ Utilisateur "1" -- "1" CarteDeCrédit : possède
 Utilisateur "1" -- "1" Forfait : souscrit à
 Utilisateur "1" -- "0..*" Location : loue
 Location "1" -- "1" Copie : utilise
-Film "1" -- "0..*" Réalisateur : réalisé_par
+Film "1" -- "0..*" Réalisateur : réalisé par
 Film "1" -- "0..*" Acteur : inclut
-Film "1" -- "0..*" Scénariste : écrit_par
+Film "1" -- "0..*" Scénariste : écrit par
 Film "1" -- "0..*" Copie : a_des_copies
-Acteur "1" -- "0..*" Rôle : joue_dans
+Acteur "1" -- "0..*" Rôle : joue dans
 
-' Ajout des contraintes de spécialisation
+' Contraintes de spécialisation
 Personne <|-- Réalisateur : {complete}
 Personne <|-- Acteur : {incomplete}
 Personne <|-- Scénariste : {incomplete}

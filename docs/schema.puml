@@ -1,8 +1,9 @@
-@startuml
+@startuml schema
+
 entity Utilisateur {
   + utilisateur_id: NUMBER(10) <<PK>>
   - nom: VARCHAR2(100)
-  - courriel: VARCHAR2(100)
+  - courriel: VARCHAR2(100) <<UNIQUE>>
   - numéro_téléphone: VARCHAR2(15)
   - adresse_domicile: VARCHAR2(200)
   - date_naissance: DATE
@@ -14,7 +15,7 @@ entity Utilisateur {
 entity CarteDeCrédit {
   + carte_credit_id: NUMBER(10) <<PK>>
   - type: VARCHAR2(20)
-  - numéro: VARCHAR2(16)
+  - numéro: VARCHAR2(16) <<UNIQUE>>
   - date_expiration: DATE
   - cvv: VARCHAR2(3)
 }
@@ -29,9 +30,9 @@ entity Forfait {
 
 entity Location {
   + location_id: NUMBER(10) <<PK>>
-  - start_date: DATE
-  - due_date: DATE
-  - returned_date: DATE
+  - date_debut: DATE
+  - date_fin: DATE
+  - date_retour: DATE
   - utilisateur_id: NUMBER(10) <<FK>> -- Utilisateur
   - copie_id: NUMBER(10) <<FK>> -- Copie
 }
