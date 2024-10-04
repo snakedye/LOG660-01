@@ -12,6 +12,10 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 public class LectureBD {   
+
+   private java.sql.Connection connection;
+
+   
    public class Role {
       public Role(int i, String n, String p) {
          id = i;
@@ -366,6 +370,24 @@ public class LectureBD {
    
    private void connectionBD() {
       // On se connecte a la BD
+      String url = "jdbc:oracle:thin:@bdlog660.ens.ad.etsmtl.ca:1521:ORCLPDB";
+      String user = "EQUIPE210";
+      String password = "XFC5ioxE";
+
+      try {
+         // Charger le driver Oracle JDBC
+         Class.forName("oracle.jdbc.driver.OracleDriver");
+         
+         // Établir la connexion
+         connection = DriverManager.getConnection(url, user, password);
+         System.out.println("Connexion à la base de données établie avec succès !");
+      } catch (ClassNotFoundException e) {
+         System.err.println("Driver JDBC Oracle non trouvé !");
+         e.printStackTrace();
+      } catch (java.sql.SQLException e) {
+         System.err.println("Erreur lors de la connexion à la base de données !");
+         e.printStackTrace();
+      }
    }
 
    public static void main(String[] args) {
