@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import java.sql.DriverManager;
-
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -347,30 +347,122 @@ public class LectureBD {
    }   
    
    private void insertionPersonne(int id, String nom, String anniv, String lieu, String photo, String bio) {      
-      // On insere la personne dans la BD
-   }
-   
-   private void insertionFilm(int id, String titre, int annee,
+        String insertSQL = "INSERT INTO personnes (id_personne, nom, date_naissance, lieu_naissance, photo, biographie) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(insertSQL)) {
+            pstmt.setInt(1, id);
+            pstmt.setString(2, nom);
+            pstmt.setString(3, anniv);
+            pstmt.setString(4, lieu);
+            pstmt.setString(5, photo);
+            pstmt.setString(6, bio);
+            
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows > 0) {
+                System.out.println("Personne insérée avec succès : ID = " + id);
+            }
+        } catch (java.sql.SQLException e) {
+            System.out.println("Erreur lors de l'insertion de la personne : " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+
+
+    private void insertionFilm(int id, String titre, int annee,
                            ArrayList<String> pays, String langue, int duree, String resume,
                            ArrayList<String> genres, String realisateurNom, int realisateurId,
                            ArrayList<String> scenaristes,
                            ArrayList<Role> roles, String poster,
                            ArrayList<String> annonces) {         
-      // On le film dans la BD
-   }
+    // Mise à jour de la requête pour retirer l'ID généré automatiquement
+    String insertSQL = "INSERT INTO films (titre, annee, resume, duree_minute, id_realisateur, id_langue) VALUES (?, ?, ?, ?, ?, ?)";
+
+    try (PreparedStatement pstmt = connection.prepareStatement(insertSQL)) {
+        // Remarque : on ne fixe plus l'ID, car il est généré par la base de données
+        pstmt.setString(1, titre);
+        pstmt.setInt(2, annee);
+        pstmt.setString(3, resume);
+        pstmt.setInt(4, duree);
+        pstmt.setInt(5, realisateurId);
+        pstmt.setString(6, langue);
+        
+        int affectedRows = pstmt.executeUpdate();
+        if (affectedRows > 0) {
+            System.out.println("Film inséré avec succès : Titre = " + titre);
+        }
+
+        // Insérer les genres dans une table associée (si applicable)
+        for (String genre : genres) {
+            String genreSQL = "INSERT INTO films_genres (id_film, id_genre) VALUES (?, ?)";
+            try (PreparedStatement genrePstmt = connection.prepareStatement(genreSQL)) {
+                genrePstmt.setInt(1, id); // Notez que vous devrez peut-être récupérer l'ID généré automatiquement
+                genrePstmt.setString(2, genre);
+                genrePstmt.executeUpdate();
+            }
+        }
+
+        // Insérer les rôles dans une table associée (si applicable)
+        for (Role role : roles) {
+            String roleSQL = "INSERT INTO films_roles (id_film, id_professionnel, nom, personnage) VALUES (?, ?, ?, ?)";
+            try (PreparedStatement rolePstmt = connection.prepareStatement(roleSQL)) {
+                rolePstmt.setInt(1, id); // Notez que vous devrez peut-être récupérer l'ID généré automatiquement
+                rolePstmt.setInt(2, role.id);
+                rolePstmt.setString(3, role.nom);
+                rolePstmt.setString(4, role.personnage);
+                rolePstmt.executeUpdate();
+            }
+        }
+        
+    } catch (java.sql.SQLException e) {
+        System.out.println("Erreur lors de l'insertion du film : " + e.getMessage());
+        e.printStackTrace();
+    }
+}
+
+
    
-   private void insertionClient(int id, String nomFamille, String prenom,
-                             String courriel, String tel, String anniv,
-                             String adresse, String ville, String province,
-                             String codePostal, String carte, String noCarte,
-                             int expMois, int expAnnee, String motDePasse,
-                             String forfait) {
-      // On le client dans la BD
-   }
+    private void insertionClient(int id, String nomFamille, String prenom,
+                                String courriel, String tel, String anniv,
+                                String adresse, String ville, String province,
+                                String codePostal, String carte, String noCarte,
+                                int expMois, int expAnnee, String motDePasse,
+                                String forfait) {
+        String insertSQL = "INSERT INTO clients (id_client, nom_famille, prenom, email, telephone, date_naissance, adresse_rue, adresse_ville, adresse_province, adresse_code_postal, type_carte_credit, numero_carte_credit, mois_expiration_carte, annee_expiration_carte, mot_de_passe, id_forfait) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(insertSQL)) {
+            pstmt.setInt(1, id);
+            pstmt.setString(2, nomFamille);
+            pstmt.setString(3, prenom);
+            pstmt.setString(4, courriel);
+            pstmt.setString(5, tel);
+            pstmt.setString(6, anniv);
+            pstmt.setString(7, adresse);
+            pstmt.setString(8, ville);
+            pstmt.setString(9, province);
+            pstmt.setString(10, codePostal);
+            pstmt.setString(11, carte);
+            pstmt.setString(12, noCarte);
+            pstmt.setInt(13, expMois);
+            pstmt.setInt(14, expAnnee);
+            pstmt.setString(15, motDePasse);
+            pstmt.setString(16, forfait);
+
+            int affectedRows = pstmt.executeUpdate();
+                if (affectedRows > 0) {
+                System.out.println("Client inséré avec succès : ID = " + id);
+            }
+        } 
+        catch (java.sql.SQLException e) {
+            System.out.println("Erreur lors de l'insertion du client : " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
    
    private void connectionBD() {
       // On se connecte a la BD
-      String url = "jdbc:oracle:thin:@bdlog660.ens.ad.etsmtl.ca:1521:ORCLPDB";
+      String url = "jdbc:oracle:thin:@//bdlog660.ens.ad.etsmtl.ca:1521/ORCLPDB.ens.ad.etsmtl.ca";
       String user = "EQUIPE210";
       String password = "XFC5ioxE";
 
