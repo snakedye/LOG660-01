@@ -5,6 +5,8 @@ import java.io.InputStream;
 
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -32,7 +34,9 @@ public class LectureBD {
    }
    
    
-   public void lecturePersonnes(String nomFichier){      
+   public void lecturePersonnes(String nomFichier){   
+        System.out.println("Début de lecturePersonnes avec le fichier : " + nomFichier);
+   
       try {
          XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
          XmlPullParser parser = factory.newPullParser();
@@ -44,6 +48,7 @@ public class LectureBD {
 
          String tag = null, 
                 nom = null,
+                prenom = null,
                 anniversaire = null,
                 lieu = null,
                 photo = null,
@@ -66,10 +71,11 @@ public class LectureBD {
                
                if (parser.getName().equals("personne") && id >= 0)
                {
-                  insertionPersonne(id,nom,anniversaire,lieu,photo,bio);
+                  insertionPersonne(id,nom,prenom, anniversaire,lieu,photo,bio);
                                     
                   id = -1;
                   nom = null;
+                  prenom = null;
                   anniversaire = null;
                   lieu = null;
                   photo = null;
@@ -80,8 +86,17 @@ public class LectureBD {
             {
                if (tag != null)
                {                                    
-                  if (tag.equals("nom"))
-                     nom = parser.getText();
+                  if (tag.equals("nom")) {
+                    String nomComplet = parser.getText();
+                    String[] nomPrenom = nomComplet.split(" ", 2); 
+                  if (nomPrenom.length == 2) {
+                      prenom = nomPrenom[0];
+                      nom = nomPrenom[1];
+                  } else {
+                      prenom = ""; 
+                      nom = nomPrenom[0];
+                    }
+                  }
                   else if (tag.equals("anniversaire"))
                      anniversaire = parser.getText();
                   else if (tag.equals("lieu"))
@@ -274,6 +289,7 @@ public class LectureBD {
                
                if (parser.getName().equals("client") && id >= 0)
                {
+
                   insertionClient(id,nomFamille,prenom,courriel,tel,
                              anniv,adresse,ville,province,
                              codePostal,carte,noCarte, 
@@ -346,117 +362,325 @@ public class LectureBD {
       }
    }   
    
-   private void insertionPersonne(int id, String nom, String anniv, String lieu, String photo, String bio) {      
-        String insertSQL = "INSERT INTO personnes (id_personne, nom, date_naissance, lieu_naissance, photo, biographie) VALUES (?, ?, ?, ?, ?, ?)";
+   private void insertionPersonne(int id, String nom, String prenom, String anniv, String lieu, String photo, String bio) {
+    String sql = "INSERT INTO PROFESSIONNELS (NOM, PRENOM, DATE_NAISSANCE, LIEU_NAISSANCE, BIOGRAPHIE) VALUES (?, ?, ?, ?, ?)";
 
-        try (PreparedStatement pstmt = connection.prepareStatement(insertSQL)) {
-            pstmt.setInt(1, id);
-            pstmt.setString(2, nom);
-            pstmt.setString(3, anniv);
-            pstmt.setString(4, lieu);
-            pstmt.setString(5, photo);
-            pstmt.setString(6, bio);
-            
-            int affectedRows = pstmt.executeUpdate();
-            if (affectedRows > 0) {
-                System.out.println("Personne insérée avec succès : ID = " + id);
-            }
-        } catch (java.sql.SQLException e) {
-            System.out.println("Erreur lors de l'insertion de la personne : " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
+    try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        pstmt.setString(1, nom);
+        pstmt.setString(2, prenom);
+        pstmt.setString(3, anniv);
+        pstmt.setString(4, lieu);
+        pstmt.setString(5, bio);
 
-
-
-    private void insertionFilm(int id, String titre, int annee,
-                           ArrayList<String> pays, String langue, int duree, String resume,
-                           ArrayList<String> genres, String realisateurNom, int realisateurId,
-                           ArrayList<String> scenaristes,
-                           ArrayList<Role> roles, String poster,
-                           ArrayList<String> annonces) {         
-    // Mise à jour de la requête pour retirer l'ID généré automatiquement
-    String insertSQL = "INSERT INTO films (titre, annee, resume, duree_minute, id_realisateur, id_langue) VALUES (?, ?, ?, ?, ?, ?)";
-
-    try (PreparedStatement pstmt = connection.prepareStatement(insertSQL)) {
-        // Remarque : on ne fixe plus l'ID, car il est généré par la base de données
-        pstmt.setString(1, titre);
-        pstmt.setInt(2, annee);
-        pstmt.setString(3, resume);
-        pstmt.setInt(4, duree);
-        pstmt.setInt(5, realisateurId);
-        pstmt.setString(6, langue);
-        
-        int affectedRows = pstmt.executeUpdate();
-        if (affectedRows > 0) {
-            System.out.println("Film inséré avec succès : Titre = " + titre);
-        }
-
-        // Insérer les genres dans une table associée (si applicable)
-        for (String genre : genres) {
-            String genreSQL = "INSERT INTO films_genres (id_film, id_genre) VALUES (?, ?)";
-            try (PreparedStatement genrePstmt = connection.prepareStatement(genreSQL)) {
-                genrePstmt.setInt(1, id); // Notez que vous devrez peut-être récupérer l'ID généré automatiquement
-                genrePstmt.setString(2, genre);
-                genrePstmt.executeUpdate();
-            }
-        }
-
-        // Insérer les rôles dans une table associée (si applicable)
-        for (Role role : roles) {
-            String roleSQL = "INSERT INTO films_roles (id_film, id_professionnel, nom, personnage) VALUES (?, ?, ?, ?)";
-            try (PreparedStatement rolePstmt = connection.prepareStatement(roleSQL)) {
-                rolePstmt.setInt(1, id); // Notez que vous devrez peut-être récupérer l'ID généré automatiquement
-                rolePstmt.setInt(2, role.id);
-                rolePstmt.setString(3, role.nom);
-                rolePstmt.setString(4, role.personnage);
-                rolePstmt.executeUpdate();
-            }
-        }
-        
-    } catch (java.sql.SQLException e) {
-        System.out.println("Erreur lors de l'insertion du film : " + e.getMessage());
+        pstmt.executeUpdate();
+        System.out.println("Personne insérée avec succès : " + prenom + " " + nom);
+    } catch (SQLException e) {
+        System.err.println("Erreur lors de l'insertion de la personne dans la base de données");
         e.printStackTrace();
     }
 }
 
 
-   
-    private void insertionClient(int id, String nomFamille, String prenom,
-                                String courriel, String tel, String anniv,
-                                String adresse, String ville, String province,
-                                String codePostal, String carte, String noCarte,
-                                int expMois, int expAnnee, String motDePasse,
-                                String forfait) {
-        String insertSQL = "INSERT INTO clients (id_client, nom_famille, prenom, email, telephone, date_naissance, adresse_rue, adresse_ville, adresse_province, adresse_code_postal, type_carte_credit, numero_carte_credit, mois_expiration_carte, annee_expiration_carte, mot_de_passe, id_forfait) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement pstmt = connection.prepareStatement(insertSQL)) {
-            pstmt.setInt(1, id);
-            pstmt.setString(2, nomFamille);
-            pstmt.setString(3, prenom);
-            pstmt.setString(4, courriel);
-            pstmt.setString(5, tel);
-            pstmt.setString(6, anniv);
-            pstmt.setString(7, adresse);
-            pstmt.setString(8, ville);
-            pstmt.setString(9, province);
-            pstmt.setString(10, codePostal);
-            pstmt.setString(11, carte);
-            pstmt.setString(12, noCarte);
-            pstmt.setInt(13, expMois);
-            pstmt.setInt(14, expAnnee);
-            pstmt.setString(15, motDePasse);
-            pstmt.setString(16, forfait);
 
-            int affectedRows = pstmt.executeUpdate();
-                if (affectedRows > 0) {
-                System.out.println("Client inséré avec succès : ID = " + id);
+    private void insertionFilm(int id, String titre, int annee, ArrayList<String> pays, String langue, int duree,
+                           String resume, ArrayList<String> genres, String realisateurNom, int realisateurId,
+                           ArrayList<String> scenaristes, ArrayList<Role> roles, String poster,
+                           ArrayList<String> annonces) {
+
+        String sqlFilm = "INSERT INTO FILMS (TITRE, ANNEE, RESUME, DUREE_MINUTE, ID_LANGUE) VALUES (?, ?, ?, ?, ?)";
+        String sqlPays = "INSERT INTO FILMS_PAYS (ID_FILM, ID_PAYS) VALUES (?, ?)";
+        String sqlGenre = "INSERT INTO FILMS_GENRES (ID_FILM, ID_GENRE) VALUES (?, ?)";
+        String sqlRole = "INSERT INTO FILMS_ROLES (ID_FILM, ID_PROFESSIONNEL, PERSONNAGE) VALUES (?, ?, ?)";
+
+        try {
+            // Récupérer l'ID de la langue pour insertion
+            int langueId = getLangueId(langue);
+            if (langueId == -1) {
+                System.err.println("Erreur : Langue inconnue " + langue);
+                return;
             }
-        } 
-        catch (java.sql.SQLException e) {
-            System.out.println("Erreur lors de l'insertion du client : " + e.getMessage());
+
+            // Insertion du film
+            try (PreparedStatement pstmt = connection.prepareStatement(sqlFilm, new String[]{"ID_FILM"})) {
+                pstmt.setString(1, titre);
+                pstmt.setInt(2, annee);
+                pstmt.setString(3, resume);
+                pstmt.setInt(4, duree);
+                pstmt.setInt(5, langueId);
+
+                pstmt.executeUpdate();
+
+                // Récupérer l'ID généré du film
+                ResultSet generatedKeys = pstmt.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    id = generatedKeys.getInt(1);
+                    System.out.println("Film inséré avec succès, ID généré : " + id);
+                } else {
+                    throw new SQLException("L'insertion du film a échoué, aucun ID généré.");
+                }
+            }
+
+            // Insertion des pays
+            for (String paysNom : pays) {
+                int paysId = getPaysId(paysNom);
+                if (paysId > 0) {
+                    try (PreparedStatement pstmt = connection.prepareStatement(sqlPays)) {
+                        pstmt.setInt(1, id);
+                        pstmt.setInt(2, paysId);
+                        pstmt.executeUpdate();
+                    }
+                }
+            }
+
+            // Insertion des genres
+            for (String genreNom : genres) {
+                int genreId = getGenreId(genreNom);
+                if (genreId > 0) {
+                    try (PreparedStatement pstmt = connection.prepareStatement(sqlGenre)) {
+                        pstmt.setInt(1, id);
+                        pstmt.setInt(2, genreId);
+                        pstmt.executeUpdate();
+                    }
+                }
+            }
+
+            // Insertion des rôles
+            for (Role role : roles) {
+                int professionnelId = getProfessionnelId(role.nom);
+                if (professionnelId == -1) {
+                    System.err.println("Erreur : Professionnel inconnu " + role.nom);
+                    continue;
+                }
+
+                try (PreparedStatement pstmt = connection.prepareStatement(sqlRole)) {
+                    pstmt.setInt(1, id);
+                    pstmt.setInt(2, professionnelId);
+                    pstmt.setString(3, role.personnage);
+                    pstmt.executeUpdate();
+                }
+            }
+
+            System.out.println("Tous les détails du film ont été insérés avec succès.");
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de l'insertion du film dans la base de données");
             e.printStackTrace();
         }
+    }
+
+
+
+   
+    private void insertionClient(int id, String nomFamille, String prenom, String courriel, String tel, String anniv,
+                             String rue, String ville, String province, String codePostal, String carte, 
+                             String noCarte, int expMois, int expAnnee, String motDePasse, String forfait) {
+
+    String sqlCheckPerson = "SELECT COUNT(*) FROM PERSONNES WHERE ID_PERSONNE = ?";
+    String sqlPersonne = "INSERT INTO PERSONNES (ID_PERSONNE, PRENOM, NOM, EMAIL, TELEPHONE, ADRESSE_NUM_CIVIQUE, " +
+                         "ADRESSE_RUE, ADRESSE_VILLE, ADRESSE_PROVINCE, ADRESSE_CODE_POSTAL, DATE_NAISSANCE, MOT_DE_PASSE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    String sqlClient = "INSERT INTO CLIENTS (ID_CLIENT, ID_PERSONNE, ID_FORFAIT, TYPE_CARTE_CREDIT, NUMERO_CARTE_CREDIT, " +
+                       "MOIS_EXPIRATION_CARTE, ANNEE_EXPIRATION_CARTE, CVV_CARTE_CREDIT) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+
+    
+
+    try {
+        // Vérifier si la personne existe déjà
+        boolean personneExiste = false;
+        try (PreparedStatement pstmtCheckPerson = connection.prepareStatement(sqlCheckPerson)) {
+            pstmtCheckPerson.setInt(1, id);
+            ResultSet rs = pstmtCheckPerson.executeQuery();
+            if (rs.next() && rs.getInt(1) > 0) {
+                personneExiste = true;
+            }
+        }
+
+        // Insérer la personne uniquement si elle n'existe pas déjà
+        if (!personneExiste) {
+            try (PreparedStatement pstmtPersonne = connection.prepareStatement(sqlPersonne)) {
+                pstmtPersonne.setInt(1, id);
+                pstmtPersonne.setString(2, prenom);
+                pstmtPersonne.setString(3, nomFamille);
+                pstmtPersonne.setString(4, courriel);
+                pstmtPersonne.setString(5, tel);
+                pstmtPersonne.setString(6, null);
+                pstmtPersonne.setString(7, rue);
+                pstmtPersonne.setString(8, ville);
+                pstmtPersonne.setString(9, province);
+                pstmtPersonne.setString(10, codePostal);
+                pstmtPersonne.setString(11, anniv);
+                pstmtPersonne.setString(12, motDePasse);
+                pstmtPersonne.executeUpdate();
+                System.out.println("Personne insérée avec succès : " + prenom + " " + nomFamille);
+            }
+        } else {
+            System.out.println("Personne déjà existante : " + prenom + " " + nomFamille);
+        }
+
+        // Insertion du client
+        try (PreparedStatement pstmtClient = connection.prepareStatement(sqlClient)) {
+            pstmtClient.setInt(1, id);
+            pstmtClient.setInt(2, id);
+            pstmtClient.setString(3, forfait);
+            pstmtClient.setString(4, carte);
+            pstmtClient.setString(5, noCarte);
+            pstmtClient.setInt(6, expMois);
+            pstmtClient.setInt(7, expAnnee);
+            pstmtClient.setInt(8, (int) ((Math.random() * 900) + 100));
+
+            pstmtClient.executeUpdate();
+            System.out.println("Client inséré avec succès : " + prenom + " " + nomFamille);
+        }
+    } catch (SQLException e) {
+        System.err.println("Erreur lors de l'insertion du client dans la base de données");
+        e.printStackTrace();
+    }
+}
+
+
+
+
+    private int getPaysId(String nomPays) {
+        String sqlSelect = "SELECT ID_PAYS FROM PAYS WHERE NOM = ?";
+        String sqlInsert = "INSERT INTO PAYS (NOM) VALUES (?)";
+
+        try (PreparedStatement pstmtSelect = connection.prepareStatement(sqlSelect)) {
+            // Rechercher l'ID du pays
+            pstmtSelect.setString(1, nomPays);
+            ResultSet rs = pstmtSelect.executeQuery();
+
+            if (rs.next()) {
+                // Le pays existe, retourner l'ID
+                return rs.getInt("ID_PAYS");
+            } else {
+                // Le pays n'existe pas, on l'insère
+                try (PreparedStatement pstmtInsert = connection.prepareStatement(sqlInsert, new String[]{"ID_PAYS"})) {
+                    pstmtInsert.setString(1, nomPays);
+                    pstmtInsert.executeUpdate();
+                    
+                    // Récupérer l'ID généré
+                    ResultSet generatedKeys = pstmtInsert.getGeneratedKeys();
+                    if (generatedKeys.next()) {
+                        return generatedKeys.getInt(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la recherche ou de l'insertion du pays : " + nomPays);
+            e.printStackTrace();
+        }
+
+        return -1;
+    }
+
+
+    private int getGenreId(String nomGenre) {
+        String sqlSelect = "SELECT ID_GENRE FROM GENRES WHERE NOM = ?";
+        String sqlInsert = "INSERT INTO GENRES (NOM) VALUES (?)";
+    
+        try (PreparedStatement pstmtSelect = connection.prepareStatement(sqlSelect)) {
+            // Rechercher l'ID du genre
+            pstmtSelect.setString(1, nomGenre);
+            ResultSet rs = pstmtSelect.executeQuery();
+    
+            if (rs.next()) {
+                // Le genre existe, retourner l'ID
+                return rs.getInt("ID_GENRE");
+            } else {
+                // Le genre n'existe pas, on l'insère
+                try (PreparedStatement pstmtInsert = connection.prepareStatement(sqlInsert, new String[]{"ID_GENRE"})) {
+                    pstmtInsert.setString(1, nomGenre);
+                    pstmtInsert.executeUpdate();
+                    
+                    // Récupérer l'ID généré
+                    ResultSet generatedKeys = pstmtInsert.getGeneratedKeys();
+                    if (generatedKeys.next()) {
+                        return generatedKeys.getInt(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la recherche ou de l'insertion du genre : " + nomGenre);
+            e.printStackTrace();
+        }
+    
+        return -1; 
+    }
+
+
+    private int getLangueId(String nomLangue) {
+        String sqlSelect = "SELECT ID_LANGUE FROM LANGUES WHERE NOM = ?";
+        String sqlInsert = "INSERT INTO LANGUES (NOM) VALUES (?)";
+    
+        try (PreparedStatement pstmtSelect = connection.prepareStatement(sqlSelect)) {
+            // Rechercher l'ID de la langue
+            pstmtSelect.setString(1, nomLangue);
+            ResultSet rs = pstmtSelect.executeQuery();
+    
+            if (rs.next()) {
+                // La langue existe, retourner l'ID
+                return rs.getInt("ID_LANGUE");
+            } else {
+                // La langue n'existe pas, on l'insère
+                try (PreparedStatement pstmtInsert = connection.prepareStatement(sqlInsert, new String[]{"ID_LANGUE"})) {
+                    pstmtInsert.setString(1, nomLangue);
+                    pstmtInsert.executeUpdate();
+                    
+                    // Récupérer l'ID généré
+                    ResultSet generatedKeys = pstmtInsert.getGeneratedKeys();
+                    if (generatedKeys.next()) {
+                        return generatedKeys.getInt(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la recherche ou de l'insertion de la langue : " + nomLangue);
+            e.printStackTrace();
+        }
+    
+        return -1; 
+    }
+    
+
+
+    private int getProfessionnelId(String nomComplet) {
+        String sqlSelect = "SELECT ID_PROFESSIONNEL FROM PROFESSIONNELS WHERE NOM = ? AND PRENOM = ?";
+        String sqlInsert = "INSERT INTO PROFESSIONNELS (NOM, PRENOM) VALUES (?, ?)";
+    
+        // Supposons que le nom complet est sous la forme "Prénom Nom"
+        String[] nomPrenom = nomComplet.split(" ", 2);
+        String prenom = nomPrenom.length > 1 ? nomPrenom[0] : "";
+        String nom = nomPrenom.length > 1 ? nomPrenom[1] : nomPrenom[0];
+    
+        try (PreparedStatement pstmtSelect = connection.prepareStatement(sqlSelect)) {
+            // Rechercher l'ID du professionnel
+            pstmtSelect.setString(1, nom);
+            pstmtSelect.setString(2, prenom);
+            ResultSet rs = pstmtSelect.executeQuery();
+    
+            if (rs.next()) {
+                // Le professionnel existe, retourner l'ID
+                return rs.getInt("ID_PROFESSIONNEL");
+            } else {
+                // Le professionnel n'existe pas, on l'insère
+                try (PreparedStatement pstmtInsert = connection.prepareStatement(sqlInsert, new String[]{"ID_PROFESSIONNEL"})) {
+                    pstmtInsert.setString(1, nom);
+                    pstmtInsert.setString(2, prenom);
+                    pstmtInsert.executeUpdate();
+    
+                    // Récupérer l'ID généré
+                    ResultSet generatedKeys = pstmtInsert.getGeneratedKeys();
+                    if (generatedKeys.next()) {
+                        return generatedKeys.getInt(1);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Erreur lors de la recherche ou de l'insertion du professionnel : " + nomComplet);
+            e.printStackTrace();
+        }
+    
+        return -1; 
     }
 
    
@@ -485,8 +709,9 @@ public class LectureBD {
    public static void main(String[] args) {
       LectureBD lecture = new LectureBD();
       
-      lecture.lecturePersonnes(args[0]);
+      //lecture.lecturePersonnes(args[2]);
+      lecture.lectureClients(args[0]);
       lecture.lectureFilms(args[1]);
-      lecture.lectureClients(args[2]);
+      
    }
 }
