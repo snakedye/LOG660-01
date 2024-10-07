@@ -1,3 +1,4 @@
+
 import java.io.*;
 import java.sql.*;
 import java.util.ArrayList;
@@ -71,8 +72,7 @@ public class LectureBD {
                     tag = null;
                     if (parser.getName().equals("personne") && id >= 0) {
                         // Insert the parsed Personne into the database
-                        System.out.println(id + ": "+ anniversaire);
-                        insertionPersonne(id, nom, anniversaire, lieu, photo, bio);
+//                        insertionPersonne(id, nom, anniversaire, lieu, photo, bio);
                         id = -1;
                         nom = null; anniversaire = null; lieu = null; photo = null; bio = null;
                     }
@@ -118,7 +118,7 @@ public class LectureBD {
                     tag = null;
                     if (parser.getName().equals("film") && id >= 0) {
                         // Insert the parsed Film into the database
-                        insertionFilm(id, titre, annee, pays, langue, duree, resume, genres, roles, poster);
+//                        insertionFilm(id, titre, annee, pays, langue, duree, resume, genres, roles, poster);
                         id = -1; annee = -1; duree = -1; titre = null; langue = null; resume = null; poster = null;
                         pays.clear(); genres.clear(); scenaristes.clear(); roles.clear();
                     }
@@ -161,7 +161,7 @@ public class LectureBD {
                     tag = null;
                     if (parser.getName().equals("client") && id >= 0) {
                         // Insert client into the database
-                        System.out.println(id + ": "+ prenom + " " + nomFamille);
+//                        System.out.println(id + ": "+ prenom + " " + nomFamille + ", " + anniv);
                         insertionClient(id, nomFamille, prenom, courriel, tel, anniv, expMois, expAnnee);
 
                         // Reset variables after insertion
@@ -206,6 +206,7 @@ public class LectureBD {
         String adresse_Province = "N/A";               // Sample province
         String adresse_Code_Postal = "N/A";         // Sample postal code
         String motDePasse = "password123";            // Sample password
+        Date date = (anniv != null) ? (Date.valueOf(anniv)) : null;
 
         // SQL insertion statement that includes every non-null field from the `Personnes` table
         String insertSQL = "INSERT INTO Personnes (id_Personne, prenom, nom, email, telephone, adresse_Num_Civique, adresse_Rue, adresse_Ville, adresse_Province, adresse_Code_Postal, date_Naissance, mot_De_Passe) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -221,7 +222,7 @@ public class LectureBD {
             pstmt.setString(8, adresse_Ville);           // Filling with a sample city name
             pstmt.setString(9, adresse_Province);        // Filling with a sample province
             pstmt.setString(10, adresse_Code_Postal);    // Filling with a sample postal code
-            pstmt.setDate(11, Date.valueOf(anniv));      // Convert parsed String anniversary to SQL Date
+            pstmt.setDate(11, date);      // Convert parsed String anniversary to SQL Date
             pstmt.setString(12, motDePasse);             // Filling with a sample password
 
             // Execute the SQL insertion statement
@@ -240,22 +241,20 @@ public class LectureBD {
     private void insertionClient(int id, String nomFamille, String prenom, String courriel, String tel, String anniv, int expMois, int expAnnee) {
         // Define a sample set of values for fields not provided in the method signature
         String typeCarte = "N/A";  // Credit card type (default value)
-        String numeroCarte = "N/A"; // Simulated 16-digit credit card number
+        String numeroCarte = UUID.randomUUID().toString(); // Simulated 16-digit credit card number
         String cvv = "N/A";  // Simulated CVV value
-        int id_Personne = id; // Use the same id for `id_Personne` reference to simplify
 
-        // Insert into `Clients` table
-        String insertClientSQL = "INSERT INTO Clients (id_Client, id_Personne, id_Forfait, type_Carte_Credit, numero_Carte_Credit, mois_Expiration_Carte, annee_Expiration_Carte, cvv_Carte_Credit) VALUES (?, ?, NULL, ?, ?, ?, ?, ?)";
+        // Insert into `Clients` table without the `id_Personne` field
+        String insertClientSQL = "INSERT INTO Clients (id_Client, id_Forfait, type_Carte_Credit, numero_Carte_Credit, mois_Expiration_Carte, annee_Expiration_Carte, cvv_Carte_Credit) VALUES (?, NULL, ?, ?, ?, ?, ?)";
 
         try (PreparedStatement pstmtClient = connection.prepareStatement(insertClientSQL)) {
             // Set parameters for the `Clients` table
             pstmtClient.setInt(1, id);                   // Set the client ID
-            pstmtClient.setInt(2, id_Personne);           // Use the same ID for `id_Personne`
-            pstmtClient.setString(3, typeCarte);          // Default credit card type
-            pstmtClient.setString(4, numeroCarte);        // Simulated credit card number
-            pstmtClient.setInt(5, expMois);               // Expiration month from the XML
-            pstmtClient.setInt(6, expAnnee);              // Expiration year from the XML
-            pstmtClient.setString(7, cvv);                // Simulated CVV value
+            pstmtClient.setString(2, typeCarte);          // Default credit card type
+            pstmtClient.setString(3, numeroCarte);        // Simulated credit card number
+            pstmtClient.setInt(4, expMois);               // Expiration month from the method argument
+            pstmtClient.setInt(5, expAnnee);              // Expiration year from the method argument
+            pstmtClient.setString(6, cvv);                // Simulated CVV value
 
             // Execute the insertion
             pstmtClient.executeUpdate();
@@ -263,7 +262,9 @@ public class LectureBD {
         } catch (SQLException e) {
             System.out.println("Error inserting into Clients: " + prenom + " " + nomFamille);
             e.printStackTrace();
-        }    }
+        }
+    }
+
 
     public static void main(String[] args) {
         LectureBD lecture = new LectureBD();
